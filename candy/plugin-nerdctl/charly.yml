@@ -1,0 +1,37 @@
+# plugin-nerdctl — the out-of-tree charly ENGINE plugin serving `engine:nerdctl`.
+#
+# A standalone Go module served over go-plugin gRPC via the charly plugin SDK; the
+# charly loader host-builds ./cmd/serve and connects it OUT-OF-PROCESS. It answers
+# every engine op by delegating to the pure body container.InvokeEngineOp in the
+# spec module — the SAME body the compiled-in engine:podman/engine:docker providers
+# serve — so the engine class has one implementation and two placements.
+plugin-nerdctl:
+    candy:
+        version: 2026.266.1500
+        description: |
+            The out-of-tree charly ENGINE plugin serving engine:nerdctl (plus the
+            verb:nerdctl / command:nerdctl convenience words). It answers the engine
+            provider-class op envelope (describe / binary / gpu_args / start_plan /
+            unit_emit / network_ensure) by delegating to the pure body
+            container.InvokeEngineOp("nerdctl", …) in the spec module, so the engine
+            class has one implementation served from either placement. A standalone Go
+            module (go.mod + cmd/serve) host-built and connected over go-plugin gRPC.
+            Composes with the layer-nerdctl candy (the packages + rootless
+            containerd/buildkit/CNI stack) to deploy a pod with engine: nerdctl.
+        plugin:
+            providers:
+                - engine:nerdctl
+                - verb:nerdctl
+                - command:nerdctl
+            source: github.com/opencharly/plugin-nerdctl/candy/plugin-nerdctl
+        plan:
+            - check: the out-of-tree engine:nerdctl plugin ships a buildable Go module (go.mod + cmd/serve) the host can build + serve out-of-process
+              id: nerdctl-module-present
+              context:
+                - build
+              command: "true"
+            - check: the plugin declares the engine:nerdctl provider word
+              id: nerdctl-provider-declared
+              context:
+                - build
+              command: grep -q 'engine:nerdctl' charly.yml
