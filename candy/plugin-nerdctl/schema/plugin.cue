@@ -1,13 +1,19 @@
 // plugin-nerdctl's OWN self-contained CUE schema — the SINGLE SOURCE for this plugin's
-// declaration surface, served over the Describe channel (there is no schema-less
-// plugin). SELF-CONTAINED and PACKAGE-LESS: it references no base def and carries no
-// package clause, so the SDK compiles it STANDALONE (the property `cue exp gengotypes`
-// needs) AND the host can splice `base ++ plugin` at the load gate.
+// served declaration surface (there is no schema-less plugin: every plugin ships a
+// non-empty schema over Describe).
 //
-// The plugin serves `engine:nerdctl` plus the `verb:nerdctl` / `command:nerdctl`
-// convenience words. The `engine` provider class carries NO authored input of its own —
-// its request/reply envelopes live in the base spec schema (spec/schema/engine.cue) —
-// so this schema DOCUMENTS the engine word.
+// SELF-CONTAINED and PACKAGE-LESS: it references no base def and carries no package
+// clause, so it compiles STANDALONE — the property the SDK's serve-side compile needs
+// and the property that lets the host splice `base ++ plugin` at the load gate
+// (registerPluginUnitSchema); a self-contained schema that will not splice is a LOUD
+// load failure.
+//
+// NO GO CONSUMER: the plugin declares no typed `plugin_input` (its authored input is
+// its pass-through CLI grammar), so this schema generates NO `params` package and has
+// NO `cue exp gengotypes` artifact — it is the SERVED documentation/config surface,
+// not a code-generation source.
+//
+// It DOCUMENTS the `engine: nerdctl` word (plus the `verb:` / `command:` convenience words). The engine request/reply envelopes live in the base spec schema (`spec/schema/engine.cue`), so no authored input is declared here.
 #NerdctlPlugin: {
 	// The engine word the plugin serves (the registry key `engine:nerdctl`).
 	engine: "nerdctl"
