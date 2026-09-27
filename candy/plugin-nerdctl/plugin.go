@@ -17,6 +17,7 @@ package nerdctl
 
 import (
 	"context"
+	"embed"
 	"encoding/json"
 	"fmt"
 
@@ -24,6 +25,9 @@ import (
 	"github.com/opencharly/spec/container"
 	pb "github.com/opencharly/spec/proto"
 )
+
+//go:embed schema/*.cue
+var schemaFS embed.FS
 
 const calver = "2026.266.1500"
 
@@ -36,8 +40,9 @@ func NewProvider() pb.ProviderServer { return &provider{} }
 
 // NewMeta advertises the engine:nerdctl capability (empty InputDef — the engine
 // class carries no authored plugin_input; its envelopes live in the base
-// schema/spec) plus the verb/command convenience words, with a self-contained,
-// load-gate-only CUE schema.
+// schema/spec) plus the verb/command convenience words, together with the
+// plugin's OWN self-contained, package-less CUE schema (schema/plugin.cue) served
+// over Describe: there is NO schema-less plugin.
 func NewMeta() pb.PluginMetaServer {
 	return sdk.NewMeta(calver,
 		[]sdk.ProvidedCapability{
@@ -45,7 +50,7 @@ func NewMeta() pb.PluginMetaServer {
 			{Class: "verb", Word: engineWord, InputDef: ""},
 			{Class: "command", Word: engineWord, InputDef: ""},
 		},
-		nil)
+		schemaFS)
 }
 
 type provider struct{ pb.UnimplementedProviderServer }
